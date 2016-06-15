@@ -1,10 +1,12 @@
 package org.lunapark.dev.intervaltimer;
 
 
+import android.content.Context;
 import android.media.AudioManager;
 import android.media.SoundPool;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -31,6 +33,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private SoundPool soundPool;
     private int sndBlip1, sndBlip2;
+    private Vibrator vibrator;
 
 
     @Override
@@ -57,18 +60,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         progressBar.setProgress(0);
 
         tvInterval = (TextView) findViewById(R.id.tvInterval);
+        vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+
 
         soundPool = new SoundPool(10, AudioManager.STREAM_MUSIC, 0);
         soundPool.setOnLoadCompleteListener(this);
 
         try {
-            sndBlip1 = soundPool.load(getAssets().openFd("blip1.wav"), 1);
-            sndBlip2 = soundPool.load(getAssets().openFd("blip2.wav"), 1);
+            sndBlip1 = soundPool.load(getAssets().openFd("blip1.ogg"), 1);
+            sndBlip2 = soundPool.load(getAssets().openFd("blip2.ogg"), 1);
 
 
         } catch (IOException e) {
             e.printStackTrace();
         }
+
 
         bundle = new Bundle();
     }
@@ -159,6 +165,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             try {
                 while (running) {
                     loop++;
+                    vibrator.vibrate(300);
                     soundPool.play(sndBlip2, 1, 1, 0, 1, 1);
                     for (int i = 0; i < timeInterval1; i++) {
                         if (!running) break;
@@ -167,6 +174,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         publishProgress(finish, current, loop);
                         TimeUnit.SECONDS.sleep(1);
                     }
+                    vibrator.vibrate(200);
                     soundPool.play(sndBlip1, 1, 1, 0, 0, 1);
 
                     for (int i = 0; i < timeInterval2; i++) {
@@ -192,6 +200,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             int result = values[1];
             int progress = Math.round(100 * result / limit);
             progressBar.setProgress(progress);
+
+
             tvInterval.setText(values[2] + "\n" + getTimeString(limit - result));
         }
 
