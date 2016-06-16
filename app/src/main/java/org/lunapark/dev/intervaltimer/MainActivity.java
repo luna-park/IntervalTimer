@@ -1,16 +1,19 @@
 package org.lunapark.dev.intervaltimer;
 
 
+import android.animation.ObjectAnimator;
+import android.animation.TimeInterpolator;
+import android.app.Activity;
+import android.app.DialogFragment;
 import android.content.Context;
 import android.media.AudioManager;
 import android.media.SoundPool;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Vibrator;
-import android.support.v4.app.DialogFragment;
-import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.animation.LinearInterpolator;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -18,7 +21,7 @@ import android.widget.TextView;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener,
+public class MainActivity extends Activity implements View.OnClickListener,
         SoundPool.OnLoadCompleteListener, SetTime.DialogListener {
 
     private ProgressBar progressBar;
@@ -27,13 +30,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private Bundle bundle;
 
-    private int timeInterval1 = 20;
-    private int timeInterval2 = 10;
+    private int timeInterval1 = 5;
+    private int timeInterval2 = 5;
     private boolean running = false;
 
     private SoundPool soundPool;
     private int sndBlip1, sndBlip2;
     private Vibrator vibrator;
+
+    private TimeInterpolator DEFAULT_INTERPOLATER = new LinearInterpolator();
 
 
     @Override
@@ -107,7 +112,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         bundle.putInt("Sec", time % 60);
         bundle.putInt("Interval", interval);
         newFragment.setArguments(bundle);
-        newFragment.show(getSupportFragmentManager(), "SetTime");
+        newFragment.show(getFragmentManager(), "SetTime");
     }
 
     @Override
@@ -163,7 +168,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         @Override
         protected Void doInBackground(Void... params) {
             try {
+                // Preparation loop
+                for (int i = 0; i < 5; i++) {
+                    soundPool.play(sndBlip1, 1, 1, 0, 0, 1);
+                    if (!running) break;
+                    TimeUnit.SECONDS.sleep(1);
+                }
                 while (running) {
+                    // Main loop
                     loop++;
                     vibrator.vibrate(300);
                     soundPool.play(sndBlip2, 1, 1, 0, 1, 1);
@@ -175,12 +187,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         TimeUnit.SECONDS.sleep(1);
                     }
                     vibrator.vibrate(200);
-                    soundPool.play(sndBlip1, 1, 1, 0, 0, 1);
-
+                    soundPool.play(sndBlip1, 1, 1, 0, 0, 0.8f);
                     for (int i = 0; i < timeInterval2; i++) {
                         if (!running) break;
                         Integer finish = timeInterval2;
-                        Integer current = i;
+                        Integer current = timeInterval2 - i - 2;
                         publishProgress(finish, current, loop);
                         TimeUnit.SECONDS.sleep(1);
                     }
@@ -197,12 +208,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         @Override
         protected void onProgressUpdate(Integer... values) {
             int limit = values[0];
-            int result = values[1];
+            int result = values[1] + 1;
             int progress = Math.round(100 * result / limit);
-            progressBar.setProgress(progress);
 
+            ObjectAnimator animation = ObjectAnimator.ofInt(progressBar, "progress", progress);
+            animation.setDuration(300); // 0.5 second
+            animation.setInterpolator(DEFAULT_INTERPOLATER);
+            animation.start();
+//            progressBar.setProgress(progress);
+//            getDrawable(R.drawable.circular_progress_bar).setColorFilter(Color.GREEN, PorterDuff.Mode.ADD);
 
-            tvInterval.setText(values[2] + "\n" + getTimeString(limit - result));
+            String text = values[2] + "\n" + getTimeString(limit - result);
+
+            tvInterval.setText(text);
         }
 
         @Override

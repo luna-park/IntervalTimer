@@ -10,8 +10,8 @@
 
         <gradient
             android:angle="0"
-            android:endColor="@color/colorAccent"
-            android:startColor="@color/colorAccent"
+            android:endColor="@android:color/holo_blue_bright"
+            android:startColor="@android:color/holo_blue_bright"
             android:type="sweep"
             android:useLevel="false" />
     </shape>

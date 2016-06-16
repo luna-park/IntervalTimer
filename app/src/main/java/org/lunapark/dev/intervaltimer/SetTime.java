@@ -2,12 +2,11 @@ package org.lunapark.dev.intervaltimer;
 
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.DialogFragment;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v4.app.DialogFragment;
-import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.NumberPicker;
@@ -19,10 +18,6 @@ public class SetTime extends DialogFragment {
 
     // Use this instance of the interface to deliver action events
     DialogListener mListener;
-
-    public interface DialogListener {
-        public void onDialogPositiveClick(DialogFragment dialog, int time, int interval);
-    }
 
     // Override the Fragment.onAttach() method to instantiate the NoticeDialogListener
     @Override
@@ -40,7 +35,6 @@ public class SetTime extends DialogFragment {
         }
     }
 
-    @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
 
@@ -75,6 +69,7 @@ public class SetTime extends DialogFragment {
 
         // Inflate and set the layout for the dialog
         // Pass null as the parent view because its going in the dialog layout
+        builder.setTitle(getString(R.string.txt_set) + " " + interval + " " + getString(R.string.txt_hint));
         builder.setView(view)
                 .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
@@ -103,5 +98,10 @@ public class SetTime extends DialogFragment {
 //                    }
 //                });
         return builder.create();
+    }
+
+
+    public interface DialogListener {
+        void onDialogPositiveClick(DialogFragment dialog, int time, int interval);
     }
 }
