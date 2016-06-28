@@ -14,7 +14,7 @@ import android.widget.NumberPicker;
 /**
  * Created by znak on 13.06.2016.
  */
-public class SetTime extends DialogFragment {
+public class SetTimeDialog extends DialogFragment {
 
     // Use this instance of the interface to deliver action events
     DialogListener mListener;
@@ -76,27 +76,13 @@ public class SetTime extends DialogFragment {
                         // Send the positive button event back to the host activity
 
                         int time = npMinutes.getValue() * 60 + npSeconds.getValue();
-                        mListener.onDialogPositiveClick(SetTime.this, time, interval);
+                        mListener.onDialogPositiveClick(SetTimeDialog.this, time, interval);
                     }
                 })
                 .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        // Send the negative button event back to the host activity
-//                        mListener.onDialogNegativeClick(SetTime.this);
                     }
                 });
-//                // Add action buttons
-//                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-//                    @Override
-//                    public void onClick(DialogInterface dialog, int id) {
-//                        // sign in the user ...
-//                    }
-//                })
-//                .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-//                    public void onClick(DialogInterface dialog, int id) {
-//                        SetTime.this.getDialog().cancel();
-//                    }
-//                });
         return builder.create();
     }
 

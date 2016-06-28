@@ -3,4 +3,5 @@
     <dimen name="activity_horizontal_margin">8dp</dimen>
     <dimen name="activity_vertical_margin">8dp</dimen>
     <dimen name="text_size">60sp</dimen>
+    <dimen name="progress_size">20dp</dimen>
 </resources>

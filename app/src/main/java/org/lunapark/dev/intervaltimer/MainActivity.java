@@ -1,6 +1,5 @@
 package org.lunapark.dev.intervaltimer;
 
-
 import android.animation.ObjectAnimator;
 import android.animation.TimeInterpolator;
 import android.app.Activity;
@@ -22,16 +21,17 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends Activity implements View.OnClickListener,
-        SoundPool.OnLoadCompleteListener, SetTime.DialogListener {
+        SoundPool.OnLoadCompleteListener, SetTimeDialog.DialogListener {
 
     private ProgressBar progressBar;
-    private Button btnStart, btnStop, btnTime1, btnTime2;
+    private Button btnStart, btnStop, btnPresets, btnReset, btnTime1, btnTime2;
     private TextView tvInterval;
 
     private Bundle bundle;
 
     private int timeInterval1 = 5;
     private int timeInterval2 = 5;
+    private int timePrepare = 5;
     private boolean running = false;
 
     private SoundPool soundPool;
@@ -52,6 +52,10 @@ public class MainActivity extends Activity implements View.OnClickListener,
         btnStop = (Button) findViewById(R.id.btnStop);
         btnStop.setEnabled(false);
         btnStop.setOnClickListener(this);
+        btnPresets = (Button) findViewById(R.id.btnPresets);
+        btnPresets.setOnClickListener(this);
+        btnReset = (Button) findViewById(R.id.btnReset);
+        btnReset.setOnClickListener(this);
 
         btnTime1 = (Button) findViewById(R.id.btnTime1);
         btnTime1.setOnClickListener(this);
@@ -74,12 +78,9 @@ public class MainActivity extends Activity implements View.OnClickListener,
         try {
             sndBlip1 = soundPool.load(getAssets().openFd("blip1.ogg"), 1);
             sndBlip2 = soundPool.load(getAssets().openFd("blip2.ogg"), 1);
-
-
         } catch (IOException e) {
             e.printStackTrace();
         }
-
 
         bundle = new Bundle();
     }
@@ -103,16 +104,20 @@ public class MainActivity extends Activity implements View.OnClickListener,
             case R.id.btnTime2:
                 setTimeDialog(timeInterval2, 2);
                 break;
+            case R.id.btnReset:
+                updateUI(0, 0);
+                progressBar.setProgress(0);
+                break;
         }
     }
 
     private void setTimeDialog(int time, int interval) {
-        DialogFragment newFragment = new SetTime();
+        DialogFragment newFragment = new SetTimeDialog();
         bundle.putInt("Min", Math.round(time / 60));
         bundle.putInt("Sec", time % 60);
         bundle.putInt("Interval", interval);
         newFragment.setArguments(bundle);
-        newFragment.show(getFragmentManager(), "SetTime");
+        newFragment.show(getFragmentManager(), "SetTimeDialog");
     }
 
     @Override
@@ -153,9 +158,15 @@ public class MainActivity extends Activity implements View.OnClickListener,
         btnTime2.setText(getTimeString(timeInterval2));
     }
 
+    private void updateUI(int cycle, int timeInSeconds) {
+        String text = cycle + "\n" + getTimeString(timeInSeconds);
+        tvInterval.setText(text);
+
+    }
+
     class AsyncTimer extends AsyncTask<Void, Integer, Void> {
 
-        private Integer loop = 0;
+        private Integer cycle = 0;
 
         @Override
         protected void onPreExecute() {
@@ -163,27 +174,33 @@ public class MainActivity extends Activity implements View.OnClickListener,
             btnTime1.setEnabled(false);
             btnTime2.setEnabled(false);
             btnStop.setEnabled(true);
+            btnPresets.setEnabled(false);
+            btnReset.setEnabled(false);
         }
 
         @Override
         protected Void doInBackground(Void... params) {
             try {
-                // Preparation loop
-                for (int i = 0; i < 5; i++) {
+                // TODO Optimize
+                // Preparation cycle
+                for (int i = 0; i < timePrepare; i++) {
                     soundPool.play(sndBlip1, 1, 1, 0, 0, 1);
                     if (!running) break;
+                    Integer finish = timePrepare;
+                    Integer current = timePrepare - i - 2;
+                    publishProgress(finish, current, cycle);
                     TimeUnit.SECONDS.sleep(1);
                 }
                 while (running) {
-                    // Main loop
-                    loop++;
+                    // Main cycle
+                    cycle++;
                     vibrator.vibrate(300);
                     soundPool.play(sndBlip2, 1, 1, 0, 1, 1);
                     for (int i = 0; i < timeInterval1; i++) {
                         if (!running) break;
                         Integer finish = timeInterval1;
                         Integer current = i;
-                        publishProgress(finish, current, loop);
+                        publishProgress(finish, current, cycle);
                         TimeUnit.SECONDS.sleep(1);
                     }
                     vibrator.vibrate(200);
@@ -192,7 +209,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
                         if (!running) break;
                         Integer finish = timeInterval2;
                         Integer current = timeInterval2 - i - 2;
-                        publishProgress(finish, current, loop);
+                        publishProgress(finish, current, cycle);
                         TimeUnit.SECONDS.sleep(1);
                     }
 
@@ -215,12 +232,10 @@ public class MainActivity extends Activity implements View.OnClickListener,
             animation.setDuration(300); // 0.5 second
             animation.setInterpolator(DEFAULT_INTERPOLATER);
             animation.start();
-//            progressBar.setProgress(progress);
-//            getDrawable(R.drawable.circular_progress_bar).setColorFilter(Color.GREEN, PorterDuff.Mode.ADD);
 
-            String text = values[2] + "\n" + getTimeString(limit - result);
-
-            tvInterval.setText(text);
+//            String text = values[2] + "\n" + getTimeString(limit - result);
+//            tvInterval.setText(text);
+            updateUI(values[2], limit - result);
         }
 
         @Override
@@ -229,6 +244,8 @@ public class MainActivity extends Activity implements View.OnClickListener,
             btnTime1.setEnabled(true);
             btnTime2.setEnabled(true);
             btnStop.setEnabled(false);
+            btnPresets.setEnabled(true);
+            btnReset.setEnabled(true);
         }
     }
 }
