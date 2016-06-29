@@ -2,12 +2,15 @@
     <string name="app_name">Interval Timer</string>
     <string name="btn_start">START</string>
     <string name="btn_stop">STOP</string>
-    <string name="btn_presets">PRESETS</string>
     <string name="btn_reset">RESET</string>
+    <string name="btn_set">Set</string>
+    <string name="btn_save">Save current</string>
+    <string name="btn_delete">Delete</string>
     <string name="txt_set">Set interval</string>
     <string name="txt_hint">(min:sec)</string>
     <string name="txt_interval1">WORK</string>
     <string name="txt_interval2">REST</string>
     <string name="txt_cycle">CYCLE</string>
     <string name="txt_time">TIME</string>
+    <string name="txt_presets">Presets (WORK \u2192 REST)</string>
 </resources>

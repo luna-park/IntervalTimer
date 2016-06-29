@@ -113,6 +113,15 @@
         android:text="@string/txt_time"
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:typeface="monospace" />
+    <!--<TextView-->
+    <!--android:id="@+id/textView6"-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:text="@string/btn_presets"-->
+    <!--android:textAppearance="?android:attr/textAppearanceSmall"-->
+    <!--android:typeface="monospace"-->
+    <!--android:layout_alignParentBottom="true"-->
+    <!--android:layout_centerHorizontal="true" />-->
 
     <Button
         android:id="@+id/btnPresets"
@@ -120,8 +129,7 @@
         android:layout_height="wrap_content"
         android:layout_alignBottom="@+id/btnTime2"
         android:layout_centerHorizontal="true"
-        android:text="@string/btn_presets"
-        android:typeface="monospace" />
+        android:text="..." />
 
     <Button
         android:id="@+id/btnReset"

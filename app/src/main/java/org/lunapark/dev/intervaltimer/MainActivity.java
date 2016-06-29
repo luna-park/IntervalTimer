@@ -3,8 +3,11 @@ package org.lunapark.dev.intervaltimer;
 import android.animation.ObjectAnimator;
 import android.animation.TimeInterpolator;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.DialogFragment;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.media.AudioManager;
 import android.media.SoundPool;
 import android.os.AsyncTask;
@@ -39,6 +42,12 @@ public class MainActivity extends Activity implements View.OnClickListener,
     private Vibrator vibrator;
 
     private TimeInterpolator DEFAULT_INTERPOLATER = new LinearInterpolator();
+
+    // TEST DATA
+    private String[] intervals;
+    private DialogInterface.OnClickListener onClickListener;
+    private AlertDialog.Builder presetsDialogBuilder;
+    private SharedPreferences preferences;
 
 
     @Override
@@ -83,6 +92,55 @@ public class MainActivity extends Activity implements View.OnClickListener,
         }
 
         bundle = new Bundle();
+
+        // TODO Test data
+        intervals = new String[10];
+        for (int i = 0; i < intervals.length; i++) {
+            intervals[i] = "0" + i;
+        }
+
+        presetsDialogBuilder = new AlertDialog.Builder(this);
+        presetsDialogBuilder.setTitle(R.string.txt_presets);
+        presetsDialogBuilder.setPositiveButton(R.string.btn_set, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // TODO Set current intervals
+                System.out.println("Set current intervals");
+            }
+        });
+        presetsDialogBuilder.setNeutralButton(R.string.btn_save, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // TODO Save current intervals
+                System.out.println("Save current intervals");
+            }
+        });
+        presetsDialogBuilder.setNegativeButton(R.string.btn_delete, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // TODO Delete intervals
+                System.out.println("Delete last");
+            }
+        });
+        onClickListener = new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                System.out.println(which + " - " + intervals[which]);
+            }
+        };
+
+    }
+
+    // TODO load presets
+    private void loadData() {
+        preferences = getPreferences(MODE_PRIVATE);
+    }
+
+    // TODO save presets
+    private void saveData() {
+        preferences = getPreferences(MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+
     }
 
     @Override
@@ -107,6 +165,11 @@ public class MainActivity extends Activity implements View.OnClickListener,
             case R.id.btnReset:
                 updateUI(0, 0);
                 progressBar.setProgress(0);
+                break;
+            case R.id.btnPresets:
+                presetsDialogBuilder.setSingleChoiceItems(intervals, 0, onClickListener);
+                AlertDialog alertDialog = presetsDialogBuilder.create();
+                alertDialog.show();
                 break;
         }
     }
@@ -181,13 +244,12 @@ public class MainActivity extends Activity implements View.OnClickListener,
         @Override
         protected Void doInBackground(Void... params) {
             try {
-                // TODO Optimize
                 // Preparation cycle
                 for (int i = 0; i < timePrepare; i++) {
                     soundPool.play(sndBlip1, 1, 1, 0, 0, 1);
                     if (!running) break;
                     Integer finish = timePrepare;
-                    Integer current = timePrepare - i - 2;
+                    Integer current = timePrepare - i;
                     publishProgress(finish, current, cycle);
                     TimeUnit.SECONDS.sleep(1);
                 }
@@ -208,7 +270,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
                     for (int i = 0; i < timeInterval2; i++) {
                         if (!running) break;
                         Integer finish = timeInterval2;
-                        Integer current = timeInterval2 - i - 2;
+                        Integer current = timeInterval2 - i;
                         publishProgress(finish, current, cycle);
                         TimeUnit.SECONDS.sleep(1);
                     }
@@ -225,7 +287,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
         @Override
         protected void onProgressUpdate(Integer... values) {
             int limit = values[0];
-            int result = values[1] + 1;
+            int result = values[1];
             int progress = Math.round(100 * result / limit);
 
             ObjectAnimator animation = ObjectAnimator.ofInt(progressBar, "progress", progress);
