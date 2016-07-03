@@ -43,11 +43,14 @@ public class MainActivity extends Activity implements View.OnClickListener,
 
     private TimeInterpolator DEFAULT_INTERPOLATER = new LinearInterpolator();
 
-    // TEST DATA
+    // Presets DATA
+    private byte[] intervalsByte;
+    private int currentPosition = 0;
     private String[] intervals;
     private DialogInterface.OnClickListener onClickListener;
     private AlertDialog.Builder presetsDialogBuilder;
     private SharedPreferences preferences;
+    private String dataKey = "Intervals";
 
 
     @Override
@@ -55,6 +58,8 @@ public class MainActivity extends Activity implements View.OnClickListener,
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+        loadData();
 
         btnStart = (Button) findViewById(R.id.btnStart);
         btnStart.setOnClickListener(this);
@@ -93,39 +98,34 @@ public class MainActivity extends Activity implements View.OnClickListener,
 
         bundle = new Bundle();
 
-        // TODO Test data
-        intervals = new String[10];
-        for (int i = 0; i < intervals.length; i++) {
-            intervals[i] = "0" + i;
-        }
-
         presetsDialogBuilder = new AlertDialog.Builder(this);
         presetsDialogBuilder.setTitle(R.string.txt_presets);
         presetsDialogBuilder.setPositiveButton(R.string.btn_set, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                // TODO Set current intervals
-                System.out.println("Set current intervals");
+                timeInterval1 = intervalsByte[currentPosition * 2];
+                timeInterval2 = intervalsByte[currentPosition * 2 + 1];
+                updateIntervals();
             }
         });
         presetsDialogBuilder.setNeutralButton(R.string.btn_save, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 // TODO Save current intervals
-                System.out.println("Save current intervals");
+
             }
         });
         presetsDialogBuilder.setNegativeButton(R.string.btn_delete, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 // TODO Delete intervals
-                System.out.println("Delete last");
+
             }
         });
         onClickListener = new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                System.out.println(which + " - " + intervals[which]);
+                currentPosition = which;
             }
         };
 
@@ -134,12 +134,32 @@ public class MainActivity extends Activity implements View.OnClickListener,
     // TODO load presets
     private void loadData() {
         preferences = getPreferences(MODE_PRIVATE);
+        String dataString = preferences.getString(dataKey, "20, 10, 10, 5");
+
+        String[] dataStringSplit = dataString.split(",");
+        intervalsByte = new byte[dataStringSplit.length];
+        for (int i = 0; i < dataStringSplit.length; i++) {
+            byte b = Byte.valueOf(dataStringSplit[i].trim());
+            intervalsByte[i] = b;
+        }
+        timeInterval1 = intervalsByte[0];
+        timeInterval2 = intervalsByte[1];
+
+        int l = intervalsByte.length / 2;
+
+        intervals = new String[l];
+        for (int i = 0; i < intervals.length; i++) {
+            intervals[i] = getTimeString(intervalsByte[i * 2]) +
+                    " \u2192 " +
+                    getTimeString(intervalsByte[i * 2 + 1]);
+        }
     }
 
     // TODO save presets
     private void saveData() {
         preferences = getPreferences(MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
+
 
     }
 
@@ -167,7 +187,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
                 progressBar.setProgress(0);
                 break;
             case R.id.btnPresets:
-                presetsDialogBuilder.setSingleChoiceItems(intervals, 0, onClickListener);
+                presetsDialogBuilder.setSingleChoiceItems(intervals, currentPosition, onClickListener);
                 AlertDialog alertDialog = presetsDialogBuilder.create();
                 alertDialog.show();
                 break;
@@ -283,7 +303,6 @@ public class MainActivity extends Activity implements View.OnClickListener,
             return null;
         }
 
-
         @Override
         protected void onProgressUpdate(Integer... values) {
             int limit = values[0];
@@ -294,9 +313,6 @@ public class MainActivity extends Activity implements View.OnClickListener,
             animation.setDuration(300); // 0.5 second
             animation.setInterpolator(DEFAULT_INTERPOLATER);
             animation.start();
-
-//            String text = values[2] + "\n" + getTimeString(limit - result);
-//            tvInterval.setText(text);
             updateUI(values[2], limit - result);
         }
 
