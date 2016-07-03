@@ -13,4 +13,5 @@
     <string name="txt_cycle">CYCLE</string>
     <string name="txt_time">TIME</string>
     <string name="txt_presets">Presets (WORK \u2192 REST)</string>
+    <string name="txt_quit">Close application?</string>
 </resources>

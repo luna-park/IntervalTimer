@@ -13,6 +13,7 @@ import android.media.SoundPool;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Vibrator;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.animation.LinearInterpolator;
@@ -21,6 +22,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends Activity implements View.OnClickListener,
@@ -44,7 +46,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
     private TimeInterpolator DEFAULT_INTERPOLATER = new LinearInterpolator();
 
     // Presets DATA
-    private byte[] intervalsByte;
+    private ArrayList<Integer> intervalsByte;
     private int currentPosition = 0;
     private String[] intervals;
     private DialogInterface.OnClickListener onClickListener;
@@ -52,6 +54,35 @@ public class MainActivity extends Activity implements View.OnClickListener,
     private SharedPreferences preferences;
     private String dataKey = "Intervals";
 
+    /**
+     * Выход из программы
+     */
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        // Handle the back button
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            // Ask the user if they want to quit
+            new AlertDialog.Builder(this)
+                    // .setIcon(android.R.drawable.ic_dialog_alert)
+                    .setTitle(getString(R.string.app_name))
+                    .setMessage(getString(R.string.txt_quit))
+                    .setPositiveButton(android.R.string.yes,
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog,
+                                                    int which) {
+                                    System.exit(0);
+                                }
+
+                            }).setNegativeButton(android.R.string.no, null)
+                    .show();
+
+            return true;
+        } else {
+            return super.onKeyDown(keyCode, event);
+        }
+
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,7 +116,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
         tvInterval = (TextView) findViewById(R.id.tvInterval);
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
-
+        // TODO Soundpool
         soundPool = new SoundPool(10, AudioManager.STREAM_MUSIC, 0);
         soundPool.setOnLoadCompleteListener(this);
 
@@ -103,22 +134,31 @@ public class MainActivity extends Activity implements View.OnClickListener,
         presetsDialogBuilder.setPositiveButton(R.string.btn_set, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                timeInterval1 = intervalsByte[currentPosition * 2];
-                timeInterval2 = intervalsByte[currentPosition * 2 + 1];
+                timeInterval1 = intervalsByte.get(currentPosition * 2);
+                timeInterval2 = intervalsByte.get(currentPosition * 2 + 1);
                 updateIntervals();
             }
         });
         presetsDialogBuilder.setNeutralButton(R.string.btn_save, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                // TODO Save current intervals
-
+                // Save current intervals
+                intervalsByte.add(timeInterval1);
+                intervalsByte.add(timeInterval2);
+                bytesToStrings();
+                saveData();
             }
         });
         presetsDialogBuilder.setNegativeButton(R.string.btn_delete, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                // TODO Delete intervals
+                // Delete intervals
+                if (intervalsByte.size() > 2) {
+                    intervalsByte.remove(currentPosition * 2);
+                    intervalsByte.remove(currentPosition * 2);
+                    bytesToStrings();
+                    saveData();
+                }
 
             }
         });
@@ -131,36 +171,43 @@ public class MainActivity extends Activity implements View.OnClickListener,
 
     }
 
-    // TODO load presets
+    // Load presets
     private void loadData() {
         preferences = getPreferences(MODE_PRIVATE);
         String dataString = preferences.getString(dataKey, "20, 10, 10, 5");
 
         String[] dataStringSplit = dataString.split(",");
-        intervalsByte = new byte[dataStringSplit.length];
-        for (int i = 0; i < dataStringSplit.length; i++) {
-            byte b = Byte.valueOf(dataStringSplit[i].trim());
-            intervalsByte[i] = b;
+        intervalsByte = new ArrayList<>();
+
+        for (String aDataStringSplit : dataStringSplit) {
+            int b = Integer.valueOf(aDataStringSplit.trim());
+            intervalsByte.add(b);
         }
-        timeInterval1 = intervalsByte[0];
-        timeInterval2 = intervalsByte[1];
+        timeInterval1 = intervalsByte.get(0);
+        timeInterval2 = intervalsByte.get(1);
+        bytesToStrings();
+    }
 
-        int l = intervalsByte.length / 2;
-
+    private void bytesToStrings() {
+        int l = intervalsByte.size() / 2;
+        intervals = null;
         intervals = new String[l];
-        for (int i = 0; i < intervals.length; i++) {
-            intervals[i] = getTimeString(intervalsByte[i * 2]) +
+        for (int i = 0; i < l; i++) {
+            intervals[i] = getTimeString(intervalsByte.get(i * 2)) +
                     " \u2192 " +
-                    getTimeString(intervalsByte[i * 2 + 1]);
+                    getTimeString(intervalsByte.get(i * 2 + 1));
         }
     }
 
-    // TODO save presets
+    // Save presets
     private void saveData() {
         preferences = getPreferences(MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
-
-
+        String outString = "";
+        for (int i = 0; i < intervalsByte.size(); i++) {
+            outString += intervalsByte.get(i) + ",";
+        }
+        editor.putString(dataKey, outString).apply();
     }
 
     @Override
