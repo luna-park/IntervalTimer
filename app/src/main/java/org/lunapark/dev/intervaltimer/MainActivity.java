@@ -116,7 +116,6 @@ public class MainActivity extends Activity implements View.OnClickListener,
         tvInterval = (TextView) findViewById(R.id.tvInterval);
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
-        // TODO Soundpool
         soundPool = new SoundPool(10, AudioManager.STREAM_MUSIC, 0);
         soundPool.setOnLoadCompleteListener(this);
 
