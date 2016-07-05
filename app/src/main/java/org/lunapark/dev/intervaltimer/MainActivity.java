@@ -36,7 +36,7 @@ public class MainActivity extends Activity implements View.OnClickListener,
 
     private int timeInterval1 = 5;
     private int timeInterval2 = 5;
-    private int timePrepare = 5;
+    private int timePrepare = 10;
     private boolean running = false;
 
     private SoundPool soundPool;
@@ -173,10 +173,10 @@ public class MainActivity extends Activity implements View.OnClickListener,
     // Load presets
     private void loadData() {
         preferences = getPreferences(MODE_PRIVATE);
-        String dataString = preferences.getString(dataKey, "20, 10, 10, 5");
+        String dataString = preferences.getString(dataKey, "20, 10, 40, 5");
 
         String[] dataStringSplit = dataString.split(",");
-        intervalsByte = new ArrayList<>();
+        intervalsByte = new ArrayList<Integer>();
 
         for (String aDataStringSplit : dataStringSplit) {
             int b = Integer.valueOf(aDataStringSplit.trim());
